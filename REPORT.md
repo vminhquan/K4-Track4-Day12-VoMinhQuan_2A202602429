@@ -5,10 +5,10 @@
 | | |
 |---|---|
 | Họ và tên | Võ Minh Quân |
-| MSSV (đúng bằng `--student-id` bạn đã chạy) | `2A202602429` |
+| MSSV | `2A202602429` |
 | GitHub | `vminhquan` |
 | Seed chia dữ liệu / seed mô hình | `6044` / `7496–7500` |
-| Số seed huấn luyện bạn dùng (`--seeds`) | `5` |
+| Số seed huấn luyện| `5` |
 
 ## Kết quả cuối
 
