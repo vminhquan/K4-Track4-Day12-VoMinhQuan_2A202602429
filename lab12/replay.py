@@ -122,7 +122,27 @@ def compare_with_tol(golden, new, atol=1e-3, rtol=1e-3):
     #   * |golden|. Hai NaN ở cùng vị trí coi là bằng nhau. Trả dict có đúng các khoá: segments,
     #   differ_beyond_tol, not_bit_identical (số đoạn không giống TỪNG BIT), max_abs_diff, atol, rtol,
     #   differing_segments (tối đa 20 chỉ số đầu, dạng list).
-    raise NotImplementedError("TODO compare_with_tol: xem GUIDE.md, Bước 1")
+    golden, new = np.asarray(golden), np.asarray(new)
+    if golden.shape != new.shape or golden.ndim != 2:
+        raise ValueError("replays must be two arrays of the same (segments, frames) shape")
+    both_nan = np.isnan(golden) & np.isnan(new)
+    valid = np.isfinite(golden) & np.isfinite(new)
+    delta = np.zeros(golden.shape, dtype=float)
+    np.subtract(golden, new, out=delta, where=valid)
+    bad = ~(both_nan | valid) | (valid & (np.abs(delta) > atol + rtol * np.abs(golden)))
+    different = np.any(bad, axis=1)
+    # Compare the stored bits, except that NaN padding is deliberately equivalent.
+    same_bits = np.zeros(golden.shape, dtype=bool)
+    if golden.dtype == new.dtype:
+        same_bits = golden.view(np.uint8).reshape(*golden.shape, golden.dtype.itemsize)
+        same_bits = np.all(same_bits == new.view(np.uint8).reshape(*new.shape, new.dtype.itemsize), axis=-1)
+    exact = np.all(same_bits | both_nan, axis=1)
+    return {"segments": int(golden.shape[0]),
+            "differ_beyond_tol": int(different.sum()),
+            "not_bit_identical": int((~exact).sum()),
+            "max_abs_diff": float(np.max(np.abs(delta[valid]))) if valid.any() else 0.0,
+            "atol": float(atol), "rtol": float(rtol),
+            "differing_segments": np.flatnonzero(different)[:20].tolist()}
 
 
 def summation_order_demo(n=1_000_000, seed=0):
